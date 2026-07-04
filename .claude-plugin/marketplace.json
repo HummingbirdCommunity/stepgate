@@ -1,0 +1,22 @@
+{
+	"$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+	"name": "stepgate",
+	"description": "Stepgate - a supervised, human-in-the-loop feature-authoring loop for Claude Code (plan, step, ship).",
+	"owner": {
+		"name": "Xenia Lu",
+		"url": "https://github.com/XeniaLu"
+	},
+	"plugins": [
+		{
+			"name": "stepgate",
+			"source": "./",
+			"description": "Supervised, human-in-the-loop feature-authoring loop: plan -> step (loop) -> ship, with every file reviewed before it is committed and nothing pushed without you looking first. (init is optional one-time setup.)",
+			"author": {
+				"name": "Xenia Lu",
+				"url": "https://github.com/XeniaLu"
+			},
+			"version": "0.1.0",
+			"category": "development"
+		}
+	]
+}
