@@ -60,7 +60,7 @@ You review every file before it is committed, and nothing is pushed until the ve
 In Claude Code:
 
 ```
-/plugin marketplace add XeniaLu/stepgate
+/plugin marketplace add HummingbirdCommunity/stepgate
 /plugin install stepgate@stepgate
 ```
 

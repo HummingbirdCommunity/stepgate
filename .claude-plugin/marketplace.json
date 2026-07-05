@@ -3,14 +3,14 @@
 	"name": "stepgate",
 	"description": "Stepgate - a supervised, human-in-the-loop feature-authoring loop for Claude Code (plan, step, ship).",
 	"owner": {
-		"name": "Xenia Lu",
-		"url": "https://github.com/XeniaLu"
+		"name": "Hummingbird Community",
+		"url": "https://github.com/HummingbirdCommunity"
 	},
 	"plugins": [
 		{
 			"name": "stepgate",
 			"source": "./",
-			"description": "Supervised, human-in-the-loop feature-authoring loop: plan -> step (loop) -> ship, with every file reviewed before it is committed and nothing pushed without you looking first. (init is optional one-time setup.)",
+			"description": "Supervised, human-in-the-loop feature-authoring loop: plan -> step (loop) -> ship, with every file reviewed before it is committed and nothing pushed without you looking first.",
 			"author": {
 				"name": "Xenia Lu",
 				"url": "https://github.com/XeniaLu"
