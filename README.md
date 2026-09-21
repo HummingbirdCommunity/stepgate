@@ -44,6 +44,16 @@ Confident in the plan, or it's a small change? `/stepgate:step auto` runs the re
 
 You review every file before it is committed, and nothing is pushed until the very end.
 
+**Long feature, context filling up?** Compaction blurs everything that was only ever said in the conversation - decisions, plan deviations, what the half-finished edit was supposed to be.
+
+```
+/stepgate:compact
+```
+
+Stepgate writes that state into the plan first, tells you to run `/compact`, and hands you the one line that picks the flow back up afterwards. The plan file is the memory that survives the reset.
+
+Best run at a **seam** - where the work crosses from backend to frontend, or from schema to API - rather than once the context bar turns red: at a seam everything behind you is dead weight, and a warning that arrives mid-step is the worst moment to stop. `plan` marks the seams, and `step` quietly tops the plan up at each one, so an auto-compaction never catches you out. It won't nag you to compact - it raises it only if your tool actually warns. Run it after a compaction too, to get your bearings back.
+
 **`/stepgate:init` sets up the config, once per project** - the working commands run it automatically if a project has no config yet, so you can just start with `/stepgate:plan`. For a team, one person runs it and commits `.stepgate/config.md`, so everyone shares the same setup.
 
 ## Design principles
@@ -74,7 +84,7 @@ claude plugin install stepgate@stepgate --scope project
 
 ## Configuration
 
-Stepgate adapts to your project rather than imposing its own conventions. `/stepgate:init` works out your tracker, branches, review guideline, commit style, checks, and PR rules - detecting what it can from the repo and asking you the rest - and saves them to **`.stepgate/config.md`** in your repo.
+Stepgate adapts to your project rather than imposing its own conventions. `/stepgate:init` works out your tracker, branches, review guideline, commit style, checks, PR rules, and how the project is run and verified locally - detecting what it can from the repo and asking you the rest - and saves them to **`.stepgate/config.md`** in your repo.
 
 You don't fill it out as a form: init interviews you and pre-fills what it detects. The working commands read this file, and run init automatically if a project doesn't have one yet.
 

@@ -54,7 +54,9 @@ Once locked, write the plan as **small, ordered, individually-reviewable steps**
 - **How to verify** - the quick check that this step works (test, manual action, query).
 - **Commit** - a suggested commit message stub following your commit conventions (style, scope, ticket reference).
 
-Ordering: types/schema/migrations first, then core lib, then API, then UI, then tests/docs. Leave the tree working after each step where possible; call out any steps that must land together.
+Ordering: types/schema/migrations first, then core lib, then API, then UI, then tests/docs. Leave the tree working after each step where possible; call out any steps that must land together. **When several steps touch the schema, settle its final shape here, before splitting them**: no step undoes another's schema change unless that is the point - an expand, backfill and contract migration says so in the plan - because otherwise the branch reads as a sequence nobody can hold in their head, a policy created in step 2 and dropped in step 5. How the branch divides that into files is a project convention, so follow your config's migration rules.
+
+**Mark the seams.** Where the plan crosses from one layer or surface to another - schema to API, backend to frontend, feature to tests - note it in the plan between those two steps: the point after which nothing ahead builds on the *detail* of what came before. These are the natural break points: `/stepgate:step` tops the plan up at each one, and points at them if the context ever does need compacting.
 
 **Save the plan** to the plans directory from config, filename `<ticket-or-slug>.md`. Start the file with a one-paragraph **summary of the locked approach**, then the outstanding product questions (if any), then the steps. This is a **living document**: `/stepgate:step` updates it as implementation evolves, and `/stepgate:ship` appends the test cases and a plain-language summary - so it always reflects reality and ends as a complete record of the work. If your config says plans are not committed, leave it untracked and tell later commands to exclude it from staging.
 

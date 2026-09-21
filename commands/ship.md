@@ -18,25 +18,31 @@ You are finalizing a feature. The per-step file-by-file review and the small com
 1. Resolve the target branch (from config, or an override in `$ARGUMENTS`). `git fetch` it, then compute the diff base with `git merge-base HEAD origin/<target>`.
 2. **Branch staleness**: `git rev-list --left-right --count origin/<target>...HEAD`. If the branch is **behind**, the review and PR would reflect a stale base and conflicts would only surface at merge. Offer to **rebase onto** (or merge in) the latest target now; resolve conflicts with the developer before continuing. If they decline, note the PR may conflict at merge and proceed.
 3. Confirm the work is on a **feature branch**, not a protected branch (per config - and, whether or not config lists any, always the base/target branch). If it's on one, branch it off the base branch (unless specified otherwise) before going further.
-4. Confirm **everything is committed**: if there are uncommitted or not-yet-reviewed changes (excluding unrelated untracked files and the plan file), **stop and tell the developer to run `/stepgate:step` first** - don't silently review-and-commit them here.
+4. Confirm **everything is committed**: if there are uncommitted or not-yet-reviewed changes (excluding unrelated untracked files, the plan file, and anything under your config's never-stage paths), **stop and tell the developer to run `/stepgate:step` first** - don't silently review-and-commit them here.
 5. Resolve the ticket reference (per config): from `$ARGUMENTS`, else the branch name, else ask (or note the skip marker if your config allows ticketless changes).
 
 ## Phase 2 - Whole-branch review (loop to clean)
 
 1. Run the **automated checks** from config: the test command(s) and typecheck across the project, plus lint **on the branch's changed files vs base** (not the whole repo). Tests must pass before the branch counts as clean - a failing or missing-but-needed test is a must-fix. Skip any command not configured.
-2. Run a **holistic review** of the whole branch diff (`git diff <base>...HEAD`) against your guideline (per config; if none, general best practices). Report only real issues in the changed code - not pre-existing issues in unchanged lines. For each: file:line, which rule it violates, and a brief fix.
+2. Run a **holistic review** of the whole branch diff (`git diff <base>...HEAD`) against your guideline (per config; if none, general best practices). Report only real issues in the changed code - not pre-existing issues in unchanged lines. For each: file:line, which rule it violates, and a brief fix. **Same review discipline as `/stepgate:step`**: grep for how existing peers do it before raising a "this is missing" finding, and raise no formatting findings on files a configured formatter covers.
 3. If anything is found (failing tests or review findings): present them as fix suggestions (**must-fix** vs **optional**). For fixes the developer approves, handle each with the **same review-and-commit flow as `/stepgate:step`** - file-by-file (show diff -> review -> comment audit -> wait for confirm -> `git add`), commit per your conventions (its own commit, or amend the affected step), **and update the plan** so the affected step's entry reflects the fix. (On Claude Code you can invoke `/stepgate:step`; elsewhere run the same flow inline.) Then **re-run Phase 2**.
 4. Repeat until tests pass and the review comes back clean.
 
 ## Phase 3 - Verify it works end-to-end
 
-After the branch is clean and **before pushing**, confirm the feature actually works - not just that checks pass. Scale this to the change:
+After the branch is clean and **before pushing**, confirm the feature actually works - not just that checks pass. **Read your config's `## Verifying locally` section first, if it has one**: it holds this project's run command, the ports and processes that are off limits, how a check gets past a login, where evidence goes, and what teardown is needed. Scale this to the change:
 
 - **Changes with a runtime / UX / integration surface** (UI, an endpoint, a job, external services - anything automated tests can't fully observe): write a short test plan and exercise it. Derive cases from the diff and the plan - especially the corner cases surfaced during planning - covering happy path(s), edge/boundary cases, error & failure handling, and regression-prone adjacent areas. Write each as **scenario -> steps -> expected result**. Ask whether the developer runs them or you **drive the app/flow** (use whatever run/verify tooling the setup has; if none is available - no Playwright/run tooling - the developer runs the cases manually; never skip verification silently). Record pass/fail; on any failure, fix and loop back to Phase 2.
 - **Pure-logic changes already well covered by automated tests**: say so - the suite may be enough. Do a quick sanity check rather than a full manual plan.
 - **If the branch includes DB migrations** (per config): add a case for applying them on a clean DB in commit order, and a post-deploy item to watch the migration apply after the push.
 
-Record whatever cases you produce, and their pass/fail results, in the plan document (if one exists), and reuse them for the PR Test plan (Phase 4) and any capture step (Phase 5).
+**When you drive it yourself:**
+
+- **Start your own instance, and kill only what you started, by pid.** Never match processes by pattern - `pkill -f` also matches the shell running it - and never start on, kill, or restart anything the config hands off to the developer.
+- **Point write-path checks at fixtures you created**, not at a corner of real data. A check that a request *should be refused* is destructive exactly when it finds the bug: the write that should have been blocked goes through.
+- **Put a positive assertion beside every negative one.** "The control is absent" and "the page never rendered" look identical from the outside.
+
+Record whatever cases you produce, and their pass/fail results, in the plan document (if one exists), and reuse them for the PR Test plan (Phase 4) and any capture step (Phase 5). **Then offer to write back what the setup taught you** - a port collision, a session that expires mid-run, a step needed before the app serves the change - into the config's `## Verifying locally`, so the next branch doesn't rediscover it - starting with any field still marked `unknown yet`. Propose the lines; never write them without the developer's OK.
 
 ## Phase 4 - Push & PR (only now, once)
 
@@ -59,9 +65,16 @@ Write a short **plain-language summary** of what shipped - the PR's own Summary 
 - No code, no file paths, no jargon.
 - Cover everything shipped, including edge cases handled.
 
-Save this summary to the plan document (if one exists), alongside the approach, steps, and test cases - so the plan is a complete record of the work.
+Save this summary to the plan document (if one exists), alongside the approach, steps, and test cases - so the plan is a complete record of the work. **Drop any transient `## Resume here` block** left there by `/stepgate:compact`: the work is done, so a stale resume pointer is noise in the final record.
 
-**If the change has a visual surface** (UI, or output a reader can see), also propose **how to capture proof**: from the Phase 3 cases, the few screens to screenshot and flows to screen-record that best show the impact, with where to trigger each. Ask whether the developer wants you to capture them (drive the app) or do it themselves. Skip this when there's nothing visual to show.
+**If the change has a visual surface** (UI, or output a reader can see), also propose **how to capture proof**: from the Phase 3 cases, the few screens to screenshot and flows to screen-record that best show the impact, with where to trigger each. **Record a flow rather than shoot a screen whenever what you are showing is a transition or a state over time** - a still proves the end state but not that it got there on its own. Ask whether the developer wants you to capture them (drive the app) or do it themselves. Skip this when there's nothing visual to show.
+
+Whatever gets captured has to read on its own, and lands where your config's `## Verifying locally` says evidence goes:
+
+- **Caption every shot and clip** with what it shows and what to look at in it. The reader is not the author and has none of the context; a bare image says nothing about what differs between two of them.
+- **Show the product, not the harness.** Hide what only the development setup adds - dev badges, preview chrome, test controls - and let captions name production addresses rather than `localhost`; where the page prints its own host, make the frame agree with the caption.
+- **Start a recording at the real entry point** the user would come through, and never film a screen they could not reach that way.
+- **Pair each capture with the Phase 3 case it proves.** The image is for the reader; the recorded assertion is the measurement. A screenshot is not a check.
 
 ---
 

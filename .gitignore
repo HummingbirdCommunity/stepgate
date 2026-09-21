@@ -5,3 +5,6 @@ Thumbs.db
 # Editor
 .idea/
 *.swp
+
+# Stepgate (local only)
+.stepgate/

@@ -2,7 +2,8 @@
 
 Stepgate is a Claude Code plugin: a supervised, human-in-the-loop feature-authoring
 loop (`plan -> step -> ship`, plus `init` for one-time project setup that the working
-commands auto-run when there's no config). The plugin lives at the repo root
+commands auto-run when there's no config, and `compact` to carry state across a context
+compaction). The plugin lives at the repo root
 (`.claude-plugin/{plugin,marketplace}.json`, `commands/`); the command prompt files run
 in *other people's* repos. **Stepgate is the umbrella for the whole methodology** - future
 tracks (reviewing others' PRs, promoting between environments) are added as more
