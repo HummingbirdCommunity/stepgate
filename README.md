@@ -99,11 +99,14 @@ The file is yours - plain markdown you can read and edit:
 
 ## Updating
 
-Stepgate uses semantic versioning. Updates are pull-based - never force-applied to your machine.
+Stepgate uses semantic versioning. Updates are pull-based - never force-applied to your machine. From your terminal:
 
 ```
-/plugin update stepgate
+claude plugin marketplace update stepgate
+claude plugin update stepgate@stepgate
 ```
+
+Or, inside a session, open `/plugin` (`/plugins` in VS Code), find stepgate on the **Installed** tab and select **Update now**. Restart the session to pick the new version up.
 
 See [CHANGELOG.md](CHANGELOG.md) for what changed between versions. Your `.stepgate/config.md` is untouched by updates.
 
