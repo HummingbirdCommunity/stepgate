@@ -3,8 +3,9 @@
 Stepgate is a Claude Code plugin: a supervised, human-in-the-loop feature-authoring
 loop (`plan -> step -> ship`, plus `init` for one-time project setup that the working
 commands auto-run when there's no config, and `compact` to carry state across a context
-compaction). The plugin lives at the repo root
-(`.claude-plugin/{plugin,marketplace}.json`, `commands/`); the command prompt files run
+compaction). The plugin lives in `plugins/stepgate/`
+(`.claude-plugin/plugin.json`, `commands/`), listed by the marketplace at the repo root
+(`.claude-plugin/marketplace.json`); the command prompt files run
 in *other people's* repos. **Stepgate is the umbrella for the whole methodology** - future
 tracks (reviewing others' PRs, promoting between environments) are added as more
 `/stepgate:*` commands in this one plugin, not as separate plugins.
@@ -14,9 +15,9 @@ tracks (reviewing others' PRs, promoting between environments) are added as more
 - Style: Conventional Commits (`type(scope): subject`), e.g. `feat:`, `fix:`, `docs:`, `chore:`.
 - Never add a `Co-Authored-By` trailer.
 - Hyphens, not em dashes. English only.
-- On any release: bump `version` in `.claude-plugin/plugin.json` and add a `CHANGELOG.md` entry.
+- On any release: bump `version` in `plugins/stepgate/.claude-plugin/plugin.json` and add a `CHANGELOG.md` entry.
 
-## Editing commands (`commands/*.md`)
+## Editing commands (`plugins/stepgate/commands/*.md`)
 
 - These are prompts for an AI, not docs for a reader. Every line must drive behavior;
   cut reader-facing rationale.
@@ -31,7 +32,7 @@ tracks (reviewing others' PRs, promoting between environments) are added as more
 
 Stepgate ships Claude-only for now, but nothing about the methodology is Claude-specific - adding a tool (Cursor, Codex, ...) is mechanical:
 
-- The canonical content is the command bodies in `commands/*.md`. Reuse them as-is.
+- The canonical content is the command bodies in `plugins/stepgate/commands/*.md`. Reuse them as-is.
 - Only three things are Claude-specific: the frontmatter (`description`, `argument-hint`), the `$ARGUMENTS` token, and the `/stepgate:*` cross-references. Translate those to the target tool's command/prompt format.
 - Add the tool's own packaging dir (e.g. `.cursor-plugin/`, `.codex-plugin/`) as a sibling. Keep one canonical source and thin per-tool wrappers.
 - The config path (`.stepgate/config.md`) and format are already tool-neutral - every tool's stepgate reads the same file.

@@ -2,6 +2,10 @@
 
 All notable changes to stepgate are documented here. This project follows [semantic versioning](https://semver.org/).
 
+## 0.3.1
+
+- The plugin's files moved into `plugins/stepgate/`, the layout Claude Code's own marketplace uses, so the repository's development notes are no longer read as part of the plugin. The commands are unchanged; update as usual.
+
 ## 0.3.0
 
 - **How ship ends is a config field**: a pull request, a local merge, or the gate alone. A convention that already says so keeps working; `/stepgate:init pull requests` moves it into the field.

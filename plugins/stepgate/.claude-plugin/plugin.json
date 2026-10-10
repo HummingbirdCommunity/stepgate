@@ -1,7 +1,7 @@
 {
 	"name": "stepgate",
 	"displayName": "Stepgate",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"description": "A supervised, human-in-the-loop feature-authoring pipeline: plan into small steps, review every file before it is committed, and ship once. Nothing is staged, committed, or pushed without you looking first.",
 	"author": {
 		"name": "Xenia Lu",
