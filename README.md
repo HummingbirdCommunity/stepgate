@@ -18,7 +18,7 @@ Staying in the loop costs more up front, but it is faster overall: the expensive
 
 Three commands, run in a cycle - `plan` once, `step` after each piece you build, `ship` once.
 
-**1. Plan.** Give it a ticket, a description, or both. Stepgate reads the ticket if you gave one, researches the code, settles the approach with you, then writes a small-step plan. Nothing is coded yet.
+**1. Plan.** Give it a ticket, a description, or both. Stepgate reads the ticket if you gave one, researches the code, settles the approach with you, then writes a small-step plan. A change to UI is drawn as a mockup first, so you pick the design before any code exists. Nothing is coded yet.
 
 ```
 /stepgate:plan #42                               # a ticket
@@ -36,13 +36,16 @@ On a follow-up, stepgate checks the ticket against the current code, plans only 
 
 Confident in the plan, or it's a small change? `/stepgate:step auto` runs the remaining steps hands-off - stepgate builds, self-reviews, and commits each, and you review them together at ship. (For a small task, `plan` suggests this itself.)
 
-**3. Ship.** When every step is done: a whole-branch review, end-to-end verification, then a single push and PR.
+**3. Ship.** When every step is done: a whole-branch review, end-to-end verification, then it goes out the way your project ends work - a pull request, a local merge, or just the gate, leaving the push to you. The PR's Test plan is the list of cases that were verified, ticked as they passed, with a reason beside any that could not be run.
 
 ```
 /stepgate:ship
+/stepgate:ship stage   # one stage of a ticket built in stages: the gate only, nothing goes out yet
 ```
 
-You review every file before it is committed, and nothing is pushed until the very end.
+Changes after the PR is open go through `step` like any other, then `ship` again refreshes the PR - re-running the cases they touch and updating the Test plan.
+
+You review every file before it is committed, and nothing is pushed until the whole branch has been reviewed and verified.
 
 **Long feature, context filling up?** Compaction blurs everything that was only ever said in the conversation - decisions, plan deviations, what the half-finished edit was supposed to be.
 
@@ -61,7 +64,7 @@ Best run at a **seam** - where the work crosses from backend to frontend, or fro
 - **Human-in-the-loop.** Staging a file is the signal "I reviewed this" - the agent never commits a file you haven't seen. (Hand it a small task on autopilot and it commits without pausing - but even then, nothing ships until you review the whole branch.)
 - **Small steps.** One plan step = one review pass = one commit. Small diffs are reviewable diffs.
 - **Plan before execution.** The approach is locked with you before any code is written.
-- **Push once, at the end.** No half-finished branches pushed mid-stream.
+- **Push at the end, never mid-stream.** A branch goes out only after the whole-branch review and verification - and so does every follow-up after it.
 - **Config over hard-coding.** Project specifics live in your repo's config, so the same commands fit any project.
 - **Learns your conventions.** When you diverge from the flow, stepgate offers to remember it - updating a config field, or saving a free-form rule - so it fits your team a little better each time.
 

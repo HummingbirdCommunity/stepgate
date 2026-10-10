@@ -2,6 +2,16 @@
 
 All notable changes to stepgate are documented here. This project follows [semantic versioning](https://semver.org/).
 
+## 0.3.0
+
+- **How ship ends is a config field**: a pull request, a local merge, or the gate alone. A convention that already says so keeps working; `/stepgate:init pull requests` moves it into the field.
+- `/stepgate:ship stage` runs only the whole-branch gate, for a ticket built in stages on one branch.
+- **Changes after the PR is open**: `step` reviews them like any step, and running `ship` again refreshes the PR.
+- `/stepgate:step` runs the tests covering the step before committing (new field: `Tests for given files`).
+- `/stepgate:plan` draws a UI change as an HTML mockup before the approach locks; `step` checks each UI step against it.
+- `/stepgate:ship` drives the verification and captures proof itself, handing you only what it cannot reach.
+- The PR's Test plan is the cases actually verified, ticked as they passed, with a reason for any not run.
+
 ## 0.2.0
 
 - `/stepgate:compact` - prepare for a context compaction: harvests what only the conversation knows (decisions, plan deviations, waived review findings, verification done, in-flight state) into the plan, adds a transient `## Resume here` block, then hands you the compaction step and the one line that resumes the flow. Run it after a compaction too, to re-anchor.

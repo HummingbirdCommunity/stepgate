@@ -46,6 +46,8 @@ If any escalated answers are async, it's fine to **stop here**: save a partial p
 
 Work through the developer's answers - and any product-owner answers that came back - together; iterate on the approach. **Do not proceed to Phase 5 until the developer explicitly says the approach is settled.** Keep it concrete and decision-oriented.
 
+**A change to UI gets a mockup before the approach locks**, unless its look follows plainly from the description (a one-line copy fix). Draw every screen it touches as one HTML page built from the project's real components - their actual markup and classes, or as close an imitation as HTML allows when the UI is not a web page - and show the page around the change as it really is, not an approximation. Mark what is new and which existing components each piece reuses; where a choice is open, draw the options side by side for the developer to pick. Save it in the plans directory as `<ticket-or-slug>-ui.html`. If your tool can host a page for viewing (on Claude Code, an artifact), publish that same file and republish it to the same address after every revision; edit only the local file, which is the record. Iterate until the developer signs it off, then trim it to the chosen design.
+
 ## Phase 5 - Write the step-by-step plan
 
 Once locked, write the plan as **small, ordered, individually-reviewable steps**. Each step is a coherent unit (~one commit / 1-2 files) that lines up with one `/stepgate:step` pass. For **each step** give:
@@ -53,6 +55,7 @@ Once locked, write the plan as **small, ordered, individually-reviewable steps**
 - **Files** - the specific files created/edited.
 - **How to verify** - the quick check that this step works (test, manual action, query).
 - **Commit** - a suggested commit message stub following your commit conventions (style, scope, ticket reference).
+- **Mockup** - for a UI step, the part of the signed-off mockup it builds.
 
 Ordering: types/schema/migrations first, then core lib, then API, then UI, then tests/docs. Leave the tree working after each step where possible; call out any steps that must land together. **When several steps touch the schema, settle its final shape here, before splitting them**: no step undoes another's schema change unless that is the point - an expand, backfill and contract migration says so in the plan - because otherwise the branch reads as a sequence nobody can hold in their head, a policy created in step 2 and dropped in step 5. How the branch divides that into files is a project convention, so follow your config's migration rules.
 

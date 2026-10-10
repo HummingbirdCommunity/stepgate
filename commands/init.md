@@ -24,6 +24,7 @@ Before asking anything, inspect the repo to propose sensible defaults:
 - **Running it locally**: how the app starts (`package.json` scripts `dev`/`start`, a `Procfile`, `docker-compose.yml`, `Makefile` targets, `manage.py`, `bin/rails`, a `main.go`), the port that command uses, and whether the repo carries browser tooling (`playwright.config.*`, `cypress.config.*`, an `e2e/` directory). A library or CLI with nothing to serve has none of this.
 - **Database schema changes**: look for a migrations directory (`migrations/`, `supabase/migrations/`, `db/migrate/`, `prisma/migrations/`) **or** a manually-maintained SQL changelog / schema file (`schema.sql`, `db/CHANGELOG*`, a `database/`/`sql/` dir, `*.sql` change logs). If you find neither but the project clearly talks to a database, **ask** rather than assuming there are none.
 - **Commit style**: scan recent commit **messages - subjects and bodies** (`git log -20`) - to capture the full style: the subject format (`type(scope): ...`) and its language, **and whether commits carry a body, its structure, and where a ticket link goes**.
+- **How ship ends**: a project with no remote, or a convention doc that says work is merged locally, does not end in a pull request. Otherwise default to one, and ask when it is unclear.
 - **PR template**: look for `.github/PULL_REQUEST_TEMPLATE.md` (or `.github/pull_request_template.md`, a `PULL_REQUEST_TEMPLATE/` dir, or GitLab's `.gitlab/merge_request_templates/`).
 - **Merge strategy**: for a GitHub repo, `gh api repos/{owner}/{repo} --jq '{squash: .allow_squash_merge, merge: .allow_merge_commit, rebase: .allow_rebase_merge}'` - if only one method is allowed, that's it. **For any non-GitHub host, or if detection fails, ask the developer** (squash / merge commit / rebase) - don't leave it "unsure" unless they genuinely don't know.
 - **Plans directory**: check `.gitignore` for an already-ignored scratch/notes/plans/specs path (a strong hint the project keeps working notes untracked), and look for an existing `docs/plans`, `docs/specs`, `docs/rfcs`, `.plans`, or `notes/`. Whether the chosen directory is gitignored also answers "commit plans to git". Any **other** ignored-but-present working path - a `docs/spec`, a `scratch/`, `*.local.md`, but not the plans directory itself - is a never-stage path; collect those too.
@@ -38,7 +39,7 @@ You already know most of this from Phase 1. **Don't interrogate the user section
 
 1. **Pre-fill** every value you could detect or read out of the convention docs. **Only pre-fill what you actually determined** - if you can't tell (a non-GitHub merge strategy, whether the DB has schema changes, etc.), leave it as a gap to ask in step 3; don't fill a lazy `no` / `unsure` just to move on.
 2. **Present the filled config as a short summary** and ask for a single confirm-or-correct pass - not one question per field.
-3. **Actively ask, one at a time and as interactive questions (each with options and your recommendation), only about values you couldn't determine** - usually the two **Language** settings, whether a ticket is **required** (if the docs don't say), any **promotion path**, **which port or process is the developer's own**, **PR marker** preference, and **whether to commit the config and plan files or keep them local**. Don't ask about anything you already detected with confidence.
+3. **Actively ask, one at a time and as interactive questions (each with options and your recommendation), only about values you couldn't determine** - usually the two **Language** settings, whether a ticket is **required** (if the docs don't say), any **promotion path**, **which port or process is the developer's own**, **how ship ends** (if not detected), **PR marker** preference, and **whether to commit the config and plan files or keep them local**. Don't ask about anything you already detected with confidence.
 
 The sections to end up with (detected or asked):
 
@@ -48,9 +49,9 @@ The sections to end up with (detected or asked):
 4. **Code review guideline** - path(s) to the file(s) that define review criteria, or none (then reviews use general best practices).
 5. **Commit conventions** - a reference to your commit-message guide if you have one (a doc/section covering style, scopes, and wording); otherwise the default style (conventional commits or free).
 6. **Database migrations** - whether this project has DB schema changes; the migrations directory or schema-change file; the apply command; the rules (idempotency, timestamped filenames).
-7. **Automated checks** - format, typecheck, lint, and test commands (exactly as run; tests can be one or more commands - whatever should pass before shipping), plus any setup note (e.g. a required toolchain version).
+7. **Automated checks** - format, typecheck, lint, and test commands (exactly as run; tests can be one or more commands - whatever should pass before shipping), how to run the tests of just a few files (step runs those before each commit), plus any setup note (e.g. a required toolchain version).
 8. **Verifying locally** - how to stand this project up and actually look at a change: the run command and port; any port, server, or process that belongs to the developer and must never be touched; how a check gets past a login when pages are behind one; where screenshots and recordings are written and where they are delivered; what teardown is needed. **Ask only the cheap parts now** - how it runs, and which port or process is theirs. The rest is learned the hard way, so seed the section and move on rather than interrogating them about a setup they have not needed yet: `/stepgate:ship` offers additions each time it verifies something. **Write what you do not know as `unknown yet`, not as `n/a`** - `n/a` tells ship the field does not apply, so it will never try to learn it. Skip the section entirely for a project with nothing to serve.
-9. **Pull requests** - the PR target branch; a PR template/guide reference if the project has one (else `ship` writes a Summary + Test plan); the merge strategy (squash / merge commit / rebase); whether `ship` should manage a regenerated body section between markers.
+9. **Pull requests** - how ship ends: a pull request, a local merge into the target branch with no pull request, or the whole-branch gate only (the developer takes it from there); the PR target branch; a PR template/guide reference if the project has one (else `ship` writes a Summary + Test plan); the merge strategy (squash / merge commit / rebase); whether `ship` should manage a regenerated body section between markers.
 10. **Plan storage** - **ask where step plans should live** (suggest a sensible default like `.stepgate/plans` or `docs/plans`, but let the developer choose). Whether to commit them or keep them local is handled under Committing below (and if the chosen directory is already gitignored, that answers it - local). Also record any **other** paths that must never be staged - local scratch the developer keeps in the tree on purpose - so the working commands stop offering them.
 
 **Committing (ask this during the interview, not at the end).** Two things can land in the repo: `.stepgate/config.md` and the plan files. **Ask the developer explicitly, for each, whether to commit it** (shared with everyone who clones the repo) **or keep it local** (gitignored). These are preferences you cannot detect - **do not assume or default either one**; ask. For anything kept local, add it to `.gitignore` when you write the config.
@@ -61,7 +62,7 @@ The config also ends with a free-form `## Conventions` section. Seed it with any
 
 Write `.stepgate/config.md` using exactly this structure (other commands rely on these section headings). Fill each value from the confirmed answers; use `none` / `n/a` where a section doesn't apply.
 
-**Keep each field to its own plain value.** If a workflow *overrides* a field's normal meaning - e.g. "we never push; we squash-merge locally back to the base branch" rewrites the whole push/PR flow - record that in `## Conventions`, don't stuff it into the field (Merge strategy stays just `squash`). Never write the same rule in both a field and Conventions.
+**Keep each field to its own plain value.** If a workflow *overrides* a field's normal meaning - e.g. "PRs target `dev`, except hotfixes, which go to `main`" - record the exception in `## Conventions`, don't stuff it into the field (Target branch stays just `dev`). Never write the same rule in both a field and Conventions.
 
 ```markdown
 # Stepgate configuration
@@ -105,6 +106,7 @@ Write `.stepgate/config.md` using exactly this structure (other commands rely on
 - Typecheck: <command, e.g. tsc --noEmit / mypy / cargo check | none - untyped project has no typecheck>
 - Lint: <command operating on given files | none>
 - Tests: <automated test command(s) run as the pre-ship gate; one or more, e.g. npm test | npm run test:unit | pytest | none. Leave slow/CI-only suites out - those belong in end-to-end verification, not this gate.>
+- Tests for given files: <how to run only some test files, which step runs before each commit, e.g. npx vitest run <files> | pytest <files> | same as Tests - the runner cannot narrow>
 
 ## Verifying locally
 <!-- How to stand this project up and actually look at a change. Prompts, not a schema - an answer that needs a paragraph gets a paragraph. It starts as whatever is known now and grows: /stepgate:ship offers additions whenever it verifies something the hard way. Delete the section for a project with nothing to serve. -->
@@ -115,6 +117,7 @@ Write `.stepgate/config.md` using exactly this structure (other commands rely on
 - Teardown: <what to clean up afterwards - temp credentials, servers, worktrees, stray artifacts | unknown yet | none>
 
 ## Pull requests
+- Ship ends with: <a pull request | a local merge into the target branch, no pull request | the whole-branch gate only - the developer pushes and merges>
 - Target branch: <e.g. main>
 - PR template / guide: <path, e.g. .github/PULL_REQUEST_TEMPLATE.md, CONTRIBUTING.md#pull-requests | none - ship writes a Summary + Test plan>
 - Merge strategy: <squash | merge commit | rebase | unsure>

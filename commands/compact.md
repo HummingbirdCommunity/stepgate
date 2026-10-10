@@ -58,7 +58,7 @@ Then report back a **terse bullet list of what you recorded** - the headings, no
    `/compact keep the current step's approach and the remaining plan steps; full state is in <plan path>`
 4. Give the **resume line for after the compaction** - name one, from actual state:
    - A step is built and waiting to be reviewed: **`/stepgate:step`**.
-   - All steps are done and committed: **`/stepgate:ship`**.
+   - All steps are done and committed: **`/stepgate:ship`** (**`/stepgate:ship stage`** when more stages of the ticket are to come).
    - A step is half-implemented: a copy-pasteable prose line, e.g. `Read <plan path>, then continue step <n> (<title>) from the "Resume here" block.`
    - The steps aren't settled yet: **`/stepgate:plan`** to finish planning.
 5. **End the turn here. Do not start the next step** - every further tool call spends exactly what this command just saved.
