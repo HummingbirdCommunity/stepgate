@@ -55,7 +55,7 @@ You review every file before it is committed, and nothing is pushed until the wh
 
 Stepgate writes that state into the plan first, tells you to run `/compact`, and hands you the one line that picks the flow back up afterwards. The plan file is the memory that survives the reset.
 
-Best run at a **seam** - where the work crosses from backend to frontend, or from schema to API - rather than once the context bar turns red: at a seam everything behind you is dead weight, and a warning that arrives mid-step is the worst moment to stop. `plan` marks the seams, and `step` quietly tops the plan up at each one, so an auto-compaction never catches you out. It won't nag you to compact - it raises it only if your tool actually warns. Run it after a compaction too, to get your bearings back.
+Best run at a **seam** - where the work crosses from backend to frontend, or from schema to API - rather than once the context bar turns red: at a seam everything behind you is dead weight, and a warning that arrives mid-step is the worst moment to stop. `plan` marks the seams, and `step` quietly tops the plan up at each one, so an auto-compaction never catches you out. It won't nag you to compact - it raises it only if your tool actually warns. Run it after a compaction too, to get your bearings back. And if a compaction catches you unprepared anyway, stepgate reminds Claude straight after it to re-read your config and the plan in progress, so it does not drift out of the flow.
 
 **`/stepgate:init` sets up the config, once per project** - the working commands run it automatically if a project has no config yet, so you can just start with `/stepgate:plan`. For a team, one person runs it and commits `.stepgate/config.md`, so everyone shares the same setup.
 

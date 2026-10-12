@@ -11,7 +11,7 @@ Move this session's live state out of the conversation and into the plan file, t
 
 **Recovery mode.** If the compaction **already happened** - the developer ran it, or their tool auto-compacted, and they're invoking this to get their bearings back - **skip Phases 2 and 3**: read the plan and the repo state, restate in a few lines where the flow stands, and give the resume line from Phase 4. There is nothing left to harvest; the thread is already gone.
 
-**Load your project config.** Read `.stepgate/config.md` for the plans directory, base branch, and conventions. **If it doesn't exist, do not run the init interview here** - it would burn the context this command exists to protect. Degrade instead: use the repo's default branch as the base, look for an obvious plans/notes directory (or ask the developer, in one question, where the note should go), save the state, and mention that `/stepgate:init` is worth running after the compaction.
+**Load your project config.** Read `.stepgate/config.md` for the plans directory, base branch, and conventions. Skip the read when you still hold it from earlier in the session and it has not been edited since. **If it doesn't exist, do not run the init interview here** - it would burn the context this command exists to protect. Degrade instead: use the repo's default branch as the base, look for an obvious plans/notes directory (or ask the developer, in one question, where the note should go), save the state, and mention that `/stepgate:init` is worth running after the compaction.
 
 **Language** (per your config's Language section; defaults: Local = match the user, Published = English): the plan file and our conversation in your **Local language**; any commit message in your **Published language**.
 

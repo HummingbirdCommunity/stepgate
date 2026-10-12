@@ -2,6 +2,12 @@
 
 All notable changes to stepgate are documented here. This project follows [semantic versioning](https://semver.org/).
 
+## 0.4.0
+
+- **Stepgate survives a compaction.** After any compaction - yours or an automatic one - a hook reminds Claude that the project uses stepgate, to re-read the config and the plan in progress, and to carry on in the flow it was in. It names the current branch and the plan that matches it. Projects without a stepgate config see nothing.
+- Commands read the config once per session instead of on every run, and again only after a compaction or an edit.
+- `/stepgate:step` no longer pastes each file's diff into its reply: it reads the diff to review it and points you at the file to read in your own tool, and after a fix it says what changed rather than showing the whole file again. A config convention can ask for the pasted diff back.
+
 ## 0.3.1
 
 - The plugin's files moved into `plugins/stepgate/`, the layout Claude Code's own marketplace uses, so the repository's development notes are no longer read as part of the plugin. The commands are unchanged; update as usual.

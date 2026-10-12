@@ -33,7 +33,7 @@ tracks (reviewing others' PRs, promoting between environments) are added as more
 Stepgate ships Claude-only for now, but nothing about the methodology is Claude-specific - adding a tool (Cursor, Codex, ...) is mechanical:
 
 - The canonical content is the command bodies in `plugins/stepgate/commands/*.md`. Reuse them as-is.
-- Only three things are Claude-specific: the frontmatter (`description`, `argument-hint`), the `$ARGUMENTS` token, and the `/stepgate:*` cross-references. Translate those to the target tool's command/prompt format.
+- Only four things are Claude-specific: the frontmatter (`description`, `argument-hint`), the `$ARGUMENTS` token, the `/stepgate:*` cross-references, and the after-compaction hook in `plugins/stepgate/hooks/`. Translate those to the target tool's command/prompt format, or drop the hook where the tool has no equivalent event.
 - Add the tool's own packaging dir (e.g. `.cursor-plugin/`, `.codex-plugin/`) as a sibling. Keep one canonical source and thin per-tool wrappers.
 - The config path (`.stepgate/config.md`) and format are already tool-neutral - every tool's stepgate reads the same file.
 - Do this only when actually adding a tool. Don't build multi-tool machinery (sync scripts, per-tool dirs) before then.
