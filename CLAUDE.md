@@ -1,6 +1,6 @@
-# Stepgate - project guide for Claude Code
+# Stepgate - project guide
 
-Stepgate is a Claude Code plugin: a supervised, human-in-the-loop feature-authoring
+Stepgate is a Claude Code and Codex plugin: a supervised, human-in-the-loop feature-authoring
 loop (`plan -> step -> ship`, plus `init` for one-time project setup that the working
 commands auto-run when there's no config, and `compact` to carry state across a context
 compaction). The plugin lives in `plugins/stepgate/`
@@ -28,12 +28,12 @@ tracks (reviewing others' PRs, promoting between environments) are added as more
   existing doc over re-asking.
 - Keep `README.md` and `CHANGELOG.md` in sync when behavior changes.
 
-## Porting to another tool (future)
+## Codex packaging and shared source
 
-Stepgate ships Claude-only for now, but nothing about the methodology is Claude-specific - adding a tool (Cursor, Codex, ...) is mechanical:
+The canonical content is `plugins/stepgate/commands/*.md`. Both hosts read those files; never copy their workflow bodies into a second maintained instruction set.
 
-- The canonical content is the command bodies in `plugins/stepgate/commands/*.md`. Reuse them as-is.
-- Only four things are Claude-specific: the frontmatter (`description`, `argument-hint`), the `$ARGUMENTS` token, the `/stepgate:*` cross-references, and the after-compaction hook in `plugins/stepgate/hooks/`. Translate those to the target tool's command/prompt format, or drop the hook where the tool has no equivalent event.
-- Add the tool's own packaging dir (e.g. `.cursor-plugin/`, `.codex-plugin/`) as a sibling. Keep one canonical source and thin per-tool wrappers.
-- The config path (`.stepgate/config.md`) and format are already tool-neutral - every tool's stepgate reads the same file.
-- Do this only when actually adding a tool. Don't build multi-tool machinery (sync scripts, per-tool dirs) before then.
+- Claude packaging is in `plugins/stepgate/.claude-plugin/` and the root `.claude-plugin/marketplace.json`.
+- Codex packaging is in `plugins/stepgate/.codex-plugin/`, `skills/`, and the root `.agents/plugins/marketplace.json`. Its thin skills read the canonical command and `plugins/stepgate/references/codex.md` for host-specific conventions.
+- Run `python3 scripts/build-codex.py` when command metadata changes.
+- Before a release, run `python3 scripts/build-codex.py --check` and `python3 -m unittest discover -s tests -v`.
+- Keep both plugin manifests and the Claude marketplace version in sync, and add one changelog entry describing the release. Existing project configs stay intact.

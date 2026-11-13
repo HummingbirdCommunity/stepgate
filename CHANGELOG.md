@@ -2,6 +2,12 @@
 
 All notable changes to stepgate are documented here. This project follows [semantic versioning](https://semver.org/).
 
+## 0.5.0
+
+- Codex support: install StepGate as a native plugin, using `$stepgate:plan`, `$stepgate:step`, `$stepgate:ship`, `$stepgate:init`, and `$stepgate:compact`.
+- Claude and Codex read the same command bodies and project configuration. Codex skill entrypoints contain metadata and references, so workflow changes reach both hosts without copying instructions.
+- CI checks generated skill metadata, release versions, and compaction-hook behavior.
+
 ## 0.4.0
 
 - **Stepgate survives a compaction.** After any compaction - yours or an automatic one - a hook reminds Claude that the project uses stepgate, to re-read the config and the plan in progress, and to carry on in the flow it was in. It names the current branch and the plan that matches it. Projects without a stepgate config see nothing.

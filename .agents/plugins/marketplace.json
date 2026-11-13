@@ -1,0 +1,20 @@
+{
+	"name": "stepgate",
+	"interface": {
+		"displayName": "Stepgate"
+	},
+	"plugins": [
+		{
+			"name": "stepgate",
+			"source": {
+				"source": "local",
+				"path": "./plugins/stepgate"
+			},
+			"policy": {
+				"installation": "AVAILABLE",
+				"authentication": "ON_INSTALL"
+			},
+			"category": "Productivity"
+		}
+	]
+}

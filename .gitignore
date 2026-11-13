@@ -8,3 +8,6 @@ Thumbs.db
 
 # Stepgate (local only)
 .stepgate/
+
+# Python tooling
+__pycache__/

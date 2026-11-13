@@ -1,6 +1,6 @@
 # Stepgate
 
-**A supervised, human-in-the-loop feature-authoring pipeline for [Claude Code](https://claude.com/claude-code).**
+**A supervised, human-in-the-loop feature-authoring pipeline for Claude Code and Codex.**
 
 Break a change into small steps, review every file yourself before it is committed, and keep planning separate from execution. Nothing gets staged, committed, or pushed without you looking at it first.
 
@@ -70,6 +70,8 @@ Best run at a **seam** - where the work crosses from backend to frontend, or fro
 
 ## Install
 
+### Claude Code
+
 In Claude Code:
 
 ```
@@ -84,6 +86,27 @@ claude plugin install stepgate@stepgate --scope project
 ```
 
 `--scope project` records it in the repo's `.claude/settings.json`, so anyone who clones the repo gets it. Then just run `/stepgate:plan` in any repo - if the project has no config yet, it sets one up first (via `/stepgate:init`), then plans. You can also run `/stepgate:init` yourself first.
+
+### Codex
+
+After the Codex support release is published, install from the same repository:
+
+```bash
+codex plugin marketplace add HummingbirdCommunity/stepgate
+codex plugin add stepgate@stepgate
+```
+
+For local development, replace the GitHub source with the path to your StepGate checkout. Reload the IDE extension or start a fresh Codex chat after installation. Type `$` and select `stepgate:plan`, `stepgate:step`, `stepgate:ship`, `stepgate:init`, or `stepgate:compact`:
+
+```text
+$stepgate:plan #42
+$stepgate:step
+$stepgate:ship
+```
+
+Codex uses the same `.stepgate/config.md` and plan files as Claude. Review and trust the compaction reminder in Codex's `/hooks` menu before it runs. To compact, use `$stepgate:compact` to save state, then run `/compact` in Codex CLI; in an IDE without that command, open a fresh chat with the supplied resume line.
+
+MCP servers and project-specific commands are configured in the host separately. Installing StepGate does not install tracker credentials or browser automation.
 
 ## Configuration
 
@@ -107,6 +130,15 @@ claude plugin update stepgate@stepgate
 ```
 
 Or, inside a session, open `/plugin` (`/plugins` in VS Code), find stepgate on the **Installed** tab and select **Update now**. Restart the session to pick the new version up.
+
+For a Git-backed Codex installation, refresh the marketplace and install its current plugin version, then reload the extension or start a fresh chat:
+
+```bash
+codex plugin marketplace upgrade stepgate
+codex plugin add stepgate@stepgate
+```
+
+With a local marketplace source, update that checkout first, then run only `codex plugin add stepgate@stepgate`. `marketplace upgrade` applies to Git sources. Both hosts consume `plugins/stepgate/commands/*.md` as the canonical workflow content. Maintainers run `python3 scripts/build-codex.py` after changing command metadata, and `python3 scripts/build-codex.py --check` plus `python3 -m unittest discover -s tests -v` before a release.
 
 See [CHANGELOG.md](CHANGELOG.md) for what changed between versions. Your `.stepgate/config.md` is untouched by updates.
 

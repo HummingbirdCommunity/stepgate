@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# After a compaction, point Claude back at the stepgate config and plan it can no longer see.
+# After a compaction, point the agent back at the stepgate config and plan it can no longer see.
 # Prints nothing outside a stepgate project, so other projects are unaffected.
 
 input=$(cat)
