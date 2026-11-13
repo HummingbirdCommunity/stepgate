@@ -1,8 +1,8 @@
 {
 	"name": "stepgate",
 	"displayName": "Stepgate",
-	"version": "0.5.0",
-	"description": "A supervised, human-in-the-loop feature-authoring pipeline: plan into small steps, review every file before it is committed, and ship once. Nothing is staged, committed, or pushed without you looking first.",
+	"version": "0.6.0",
+	"description": "Plan features in small steps, run with auto or supervised review, and verify the whole branch before human-approved delivery.",
 	"author": {
 		"name": "Xenia Lu",
 		"url": "https://github.com/XeniaLu"

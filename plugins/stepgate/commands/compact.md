@@ -9,13 +9,13 @@ Move this session's live state out of the conversation and into the plan file, t
 
 **This command runs because context is tight, and everything below is subordinate to that**: read the plan, read the repo state, write the delta, hand off. Don't re-investigate the codebase, don't re-review code, don't run the project's checks, don't re-read files you already know. If a step here would cost more context than it saves, say so and skip it.
 
-**Recovery mode.** If the compaction **already happened** - the developer ran it, or their tool auto-compacted, and they're invoking this to get their bearings back - **skip Phases 2 and 3**: read the plan and the repo state, restate in a few lines where the flow stands, and give the resume line from Phase 4. There is nothing left to harvest; the thread is already gone.
+**Recovery mode.** If the compaction **already happened** - the developer ran it, or their tool auto-compacted, and they're invoking this to get their bearings back - **skip Phases 2 and 3**: read the plan and the repo state, restate in a few lines where the flow stands, and give the resume line from Phase 4. There is nothing left to harvest; the thread is already gone. Restore the plan's explicitly chosen execution mode and active restrictions; the developer's current instructions take priority. Do not treat a recommendation as an auto choice.
 
-**Load your project config.** Read `.stepgate/config.md` for the plans directory, base branch, and conventions. Skip the read when you still hold it from earlier in the session and it has not been edited since. **If it doesn't exist, do not run the init interview here** - it would burn the context this command exists to protect. Degrade instead: use the repo's default branch as the base, look for an obvious plans/notes directory (or ask the developer, in one question, where the note should go), save the state, and mention that `/stepgate:init` is worth running after the compaction.
+**Load your project config.** Read and apply [Configuration loading and updates](../references/configuration.md), resolving the reference from this command file in the installed plugin. Use the effective base and local settings for plan storage, base branch, and conventions. **If the base file is missing, do not run init here**: preserve any local settings, fall back to the repository default branch and an obvious plans/notes directory for missing values (or ask where to save the note), save the state, and mention init for after compaction.
 
 **Language** (per your config's Language section; defaults: Local = match the user, Published = English): the plan file and our conversation in your **Local language**; any commit message in your **Published language**.
 
-**Conventions & learning.** Follow any rules in the config's `## Conventions` section. If the developer states a standing **process/convention** rule here (what they always want preserved, a note format), offer to persist it - to an existing config field if one maps, otherwise under `## Conventions`. Always offer, never auto-write.
+**Conventions & learning.** Follow the effective `## Conventions` rules from both layers. If the developer states a standing **process/convention** rule here, offer to persist it using the configuration reference's field and layer selection. Propose the text and destination; never auto-write.
 
 ## Phase 1 - Locate the flow
 
@@ -27,7 +27,7 @@ Move this session's live state out of the conversation and into the plan file, t
 
 The test for every candidate: **if it is already in the repo, it does not need saving.** Committed code, commit messages, the plan as written, and the config all survive the compaction - do not copy them. Save only what lives nowhere but this thread:
 
-- **Decisions and reversals** - approach changes agreed mid-implementation, options considered and rejected, and *why* - so they are not re-litigated after the reset.
+- **Decisions and reversals** - approach changes, explicitly chosen execution mode, active restrictions, options rejected, and why - when not already recorded in the plan.
 - **Discoveries about the codebase** - constraints found the hard way, a dependency that behaves unexpectedly, an area that turned out to be already implemented.
 - **Plan deviations** - steps merged, split, reordered, added, or dropped; files that differ from what the step listed.
 - **Review findings the developer waived** - what they chose not to fix and why, or you will raise it again at ship.
@@ -44,7 +44,7 @@ Securing the state is the cheapest thing you can do here, so do it before anythi
 
 - Reconcile step statuses with what the repo actually shows (done / in flight / not started).
 - **Fold each item into where it belongs** - the step entry it concerns, the approach summary, the open questions, the test cases. The plan stays a living document, not a session transcript; never paste conversation into it.
-- Add a **`## Resume here`** block directly under the approach summary: current branch, the commit it is being written at, the step in flight and its state, and the next concrete action (the commit lets recovery see what has been committed since). It is **transient** - overwrite it on every later run of this command (there is only ever one), and `/stepgate:ship` drops it when the plan becomes the final record.
+- Add a **`## Resume here`** block directly under the approach summary: current branch, the commit it is being written at, explicitly chosen execution mode and active restrictions, the step in flight and its state, and the next concrete action (the commit lets recovery see what has been committed since). It is **transient** - overwrite it on every later run of this command (there is only ever one), and `/stepgate:ship` drops it when the plan becomes the final record.
 
 Then report back a **terse bullet list of what you recorded** - the headings, not the prose - plus the file path, and invite corrections.
 

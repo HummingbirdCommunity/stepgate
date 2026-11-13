@@ -55,5 +55,131 @@ class PluginTests(unittest.TestCase):
             self.assertIn('re-read .stepgate/config.md in full', after.stdout)
 
 
+
+class LayeredCompactionTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.directory = Path(self.temporary.name)
+        self.root = self.directory / 'repo with spaces'
+        self.root.mkdir()
+        subprocess.run(['git', 'init', '-q', '-b', 'feat/VH-1140-example',
+                        str(self.root)], check=True)
+        (self.root / '.stepgate').mkdir()
+        self.base = self.root / '.stepgate/config.md'
+        self.local = self.root / '.stepgate/config.local.md'
+        self.base.write_text('## Plan storage\n- Plans directory: shared plans\n')
+        self.make_plan(self.root / 'shared plans')
+
+    def make_plan(self, directory, name='VH-1140.md'):
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / name
+        path.write_text('# Work in progress\n')
+        return path
+
+    def run_hook(self, cwd=None):
+        return subprocess.run(
+            ['bash', str(PLUGIN / 'hooks/after-compact.sh')],
+            input=json.dumps({'cwd': str(cwd or self.root)}),
+            text=True, capture_output=True, check=True).stdout
+
+    def test_local_directory_overrides_base_from_subdirectory(self):
+        self.local.write_text('## Plan storage\n- Plans directory: local plans\n')
+        self.make_plan(self.root / 'local plans')
+        nested = self.root / 'src'
+        nested.mkdir()
+        output = self.run_hook(nested)
+        self.assertIn('Plan: local plans/VH-1140.md (matches the branch)', output)
+        self.assertIn('.stepgate/config.local.md if present', output)
+        self.assertNotIn('Plan: shared plans/', output)
+
+    def test_missing_blank_or_unrelated_local_fields_inherit(self):
+        for content in ('', '## Language\n- Local language: English\n',
+                        '## Plan storage\n- Plans directory:   \n',
+                        '## Plan storage\r\n- Plans directory: \t\r\n'):
+            with self.subTest(content=content):
+                self.local.write_text(content)
+                self.assertIn('Plan: shared plans/VH-1140.md', self.run_hook())
+
+    def test_absolute_directory(self):
+        plans = self.directory / 'external plans'
+        self.make_plan(plans)
+        self.local.write_text('## Plan storage\n- Plans directory: ' + str(plans) + '\n')
+        self.assertIn('Plan: ' + str(plans / 'VH-1140.md'), self.run_hook())
+
+    def test_symlinked_configs_keep_paths_relative_to_repository(self):
+        base_target = self.directory / 'base.md'
+        local_target = self.directory / 'local.md'
+        self.base.rename(base_target)
+        self.base.symlink_to(base_target)
+        local_target.write_text('## Plan storage\n- Plans directory: linked plans\n')
+        self.local.symlink_to(local_target)
+        self.make_plan(self.root / 'linked plans')
+        self.assertIn('Plan: linked plans/VH-1140.md', self.run_hook())
+
+    def test_removing_local_file_restores_base(self):
+        self.local.write_text('- Plans directory: local plans\n')
+        self.make_plan(self.root / 'local plans')
+        self.assertIn('Plan: local plans/VH-1140.md', self.run_hook())
+        self.local.unlink()
+        self.assertIn('Plan: shared plans/VH-1140.md', self.run_hook())
+
+    def test_blank_base_uses_default_directory(self):
+        self.base.write_text('## Plan storage\n- Plans directory: \t\n')
+        self.make_plan(self.root / '.stepgate/plans')
+        self.assertIn('Plan: .stepgate/plans/VH-1140.md', self.run_hook())
+
+    def test_configuration_values_are_not_executed_or_printed(self):
+        sentinel = self.directory / 'executed'
+        self.local.write_text(
+            '- Plans directory: $(touch "' + str(sentinel) + '")\n'
+            '- Private note: DO-NOT-PRINT-THIS\n')
+        output = self.run_hook()
+        self.assertFalse(sentinel.exists())
+        self.assertNotIn('DO-NOT-PRINT-THIS', output)
+        self.assertNotIn('Plan:', output)
+
+    def test_broken_local_symlink_reports_problem_without_guessing_plan(self):
+        self.local.symlink_to(self.directory / 'missing.md')
+        output = self.run_hook()
+        self.assertIn('unreadable or has a broken link', output)
+        self.assertIn('.stepgate/config.local.md', output)
+        self.assertNotIn('Plan:', output)
+
+    def test_broken_base_symlink_still_reminds_to_resolve_configuration(self):
+        self.base.unlink()
+        self.base.symlink_to(self.directory / 'missing.md')
+        output = self.run_hook()
+        self.assertIn('unreadable or has a broken link', output)
+        self.assertNotIn('Plan:', output)
+
+    def test_local_only_does_not_mark_project_initialized(self):
+        self.base.unlink()
+        self.local.write_text('- Plans directory: local plans\n')
+        self.assertEqual(self.run_hook(), '')
+
+    def test_plan_field_in_another_section_does_not_override(self):
+        self.local.write_text('## Other\n- Plans directory: wrong\n'
+                              '## Plan storage\n- Plans directory: local plans\n')
+        self.make_plan(self.root / 'local plans')
+        self.assertIn('Plan: local plans/VH-1140.md', self.run_hook())
+
+    def test_fallback_preserves_spaces_in_filenames_and_ignores_ui(self):
+        (self.root / 'shared plans/VH-1140.md').unlink()
+        self.make_plan(self.root / 'shared plans', 'review notes.md')
+        self.make_plan(self.root / 'shared plans', 'new-ui.md')
+        self.assertIn('Plan: shared plans/review notes.md (most recently edited)',
+                      self.run_hook())
+
+    def test_edited_symlink_target_is_read_again(self):
+        target = self.directory / 'local.md'
+        target.write_text('- Plans directory: first plans\n')
+        self.local.symlink_to(target)
+        self.make_plan(self.root / 'first plans')
+        self.make_plan(self.root / 'second plans')
+        self.assertIn('Plan: first plans/VH-1140.md', self.run_hook())
+        target.write_text('- Plans directory: second plans\n')
+        self.assertIn('Plan: second plans/VH-1140.md', self.run_hook())
+
 if __name__ == '__main__':
     unittest.main()

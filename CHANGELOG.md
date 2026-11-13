@@ -2,6 +2,14 @@
 
 All notable changes to stepgate are documented here. This project follows [semantic versioning](https://semver.org/).
 
+## 0.6.0
+
+- Optional local configuration: combine .stepgate/config.md with .stepgate/config.local.md using the same rules in Claude and Codex. Base configuration may remain private or be shared; local differences stay ignored.
+- Initialization and learned rules distinguish team conventions from personal settings, show their destination, and preserve existing configurations and symlinks. Sharing an external or absolute base symlink requires an agreed portable replacement.
+- Compaction recovery uses the effective plan directory, including local overrides, absolute paths and spaces; reports broken configuration links without guessing a plan.
+- Auto is recommended for ordinary tasks, with supervision suggested for concrete high risks. Mode selection stays explicit, and both modes keep the human review at ship. Explicit choices are recorded per plan and restored with active restrictions after compaction.
+- At each marked seam, save state and suggest compaction in both modes, pausing for compaction or continuation without switching modes.
+
 ## 0.5.0
 
 - Codex support: install StepGate as a native plugin, using `$stepgate:plan`, `$stepgate:step`, `$stepgate:ship`, `$stepgate:init`, and `$stepgate:compact`.

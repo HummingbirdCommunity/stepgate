@@ -1,18 +1,8 @@
 # Stepgate
 
-**A supervised, human-in-the-loop feature-authoring pipeline for Claude Code and Codex.**
+**A feature-authoring workflow for Claude Code and Codex, with a human review before delivery.**
 
-Break a change into small steps, review every file yourself before it is committed, and keep planning separate from execution. Nothing gets staged, committed, or pushed without you looking at it first.
-
-## Why stepgate
-
-I built stepgate after noticing a pattern: the more the agent did on its own, the less I could stand behind what shipped.
-
-Hand an agent a whole feature and it hands one back in a single shot. The code might even be good - but now you have to review a result you never watched get built. You read file after file, reconstructing intent from the diff, and some of what you planned quietly never made it in. You sign off not because you are sure, but because you are tired. You can't really vouch for code you only met after it was done.
-
-Stepgate flips the order. You are there for every step: the agent plans with you, then builds one small, reviewable piece at a time, and nothing is committed until you have read it and said yes. When it is done, there is nothing to discover - you already know it is right, because you watched it become right. You also come away understanding the code, not just owning it, which makes it a good way to work when you are new to the codebase, or still learning to code.
-
-Staying in the loop costs more up front, but it is faster overall: the expensive part of AI was never the typing, it is the bug that surfaces three days later and eats an afternoon. Catch it as it is written and it costs minutes. Every commit is one you can stand behind.
+Plan together, build in small steps, and choose how review happens. In auto, the agent implements, self-reviews, checks, and commits each step; you review the whole branch at ship. In supervised mode, you also approve each file and commit.
 
 ## The loop
 
@@ -28,13 +18,14 @@ Three commands, run in a cycle - `plan` once, `step` after each piece you build,
 
 On a follow-up, stepgate checks the ticket against the current code, plans only what is left, and tells you if it is already done.
 
-**2. Step.** You build one step; stepgate walks its files with you, one at a time, and commits it once you are satisfied. Run it after every step.
+**2. Step.** For ordinary work, StepGate recommends auto: it implements the remaining steps, reviews each against your guideline, runs the checks, and commits each locally. For high-risk plans, it explains the concrete risk and recommends supervision.
 
 ```
-/stepgate:step
+/stepgate:step auto   # implement and check the remaining steps
+/stepgate:step        # review one implemented step with you
 ```
 
-Confident in the plan, or it's a small change? `/stepgate:step auto` runs the remaining steps hands-off - stepgate builds, self-reviews, and commits each, and you review them together at ship. (For a small task, `plan` suggests this itself.)
+Auto starts only when you explicitly choose it; approving a plan does not select a mode. You can choose supervision or switch modes anytime. File count alone is not a reason to discourage auto. If new material risks emerge, the agent stops and explains them. Your explicit choice is recorded in the plan and restored after compaction; current restrictions still apply.
 
 **3. Ship.** When every step is done: a whole-branch review, end-to-end verification, then it goes out the way your project ends work - a pull request, a local merge, or just the gate, leaving the push to you. The PR's Test plan is the list of cases that were verified, ticked as they passed, with a reason beside any that could not be run.
 
@@ -45,7 +36,7 @@ Confident in the plan, or it's a small change? `/stepgate:step auto` runs the re
 
 Changes after the PR is open go through `step` like any other, then `ship` again refreshes the PR - re-running the cases they touch and updating the Test plan.
 
-You review every file before it is committed, and nothing is pushed until the whole branch has been reviewed and verified.
+The agent reviews every step in either mode. Supervised mode adds your per-file approval; auto defers your review to ship. Nothing is delivered until the whole branch has been reviewed and verified.
 
 **Long feature, context filling up?** Compaction blurs everything that was only ever said in the conversation - decisions, plan deviations, what the half-finished edit was supposed to be.
 
@@ -55,13 +46,13 @@ You review every file before it is committed, and nothing is pushed until the wh
 
 Stepgate writes that state into the plan first, tells you to run `/compact`, and hands you the one line that picks the flow back up afterwards. The plan file is the memory that survives the reset.
 
-Best run at a **seam** - where the work crosses from backend to frontend, or from schema to API - rather than once the context bar turns red: at a seam everything behind you is dead weight, and a warning that arrives mid-step is the worst moment to stop. `plan` marks the seams, and `step` quietly tops the plan up at each one, so an auto-compaction never catches you out. It won't nag you to compact - it raises it only if your tool actually warns. Run it after a compaction too, to get your bearings back. And if a compaction catches you unprepared anyway, stepgate reminds Claude straight after it to re-read your config and the plan in progress, so it does not drift out of the flow.
+At every marked **seam** - where the plan moves between layers or areas - StepGate saves the current state and suggests compacting, even without a context warning. This includes auto: it pauses so you can compact or say continue, keeping your chosen mode. It reminds once per seam; a real context warning elsewhere prompts a checkpoint at the next safe boundary. StepGate never runs native compaction itself. After compaction, it restores the plan, chosen mode, and active restrictions.
 
-**`/stepgate:init` sets up the config, once per project** - the working commands run it automatically if a project has no config yet, so you can just start with `/stepgate:plan`. For a team, one person runs it and commits `.stepgate/config.md`, so everyone shares the same setup.
+**`/stepgate:init` sets up the config, once per project** - the working commands run it automatically if a project has no config yet, so you can just start with `/stepgate:plan`. Keep `.stepgate/config.md` private or share it with a team; optional `.stepgate/config.local.md` keeps personal differences local.
 
 ## Design principles
 
-- **Human-in-the-loop.** Staging a file is the signal "I reviewed this" - the agent never commits a file you haven't seen. (Hand it a small task on autopilot and it commits without pausing - but even then, nothing ships until you review the whole branch.)
+- **Human-in-the-loop.** Choose auto for agent review and local commits, or supervision for your approval at each file and commit. Both keep the human review at ship.
 - **Small steps.** One plan step = one review pass = one commit. Small diffs are reviewable diffs.
 - **Plan before execution.** The approach is locked with you before any code is written.
 - **Push at the end, never mid-stream.** A branch goes out only after the whole-branch review and verification - and so does every follow-up after it.
@@ -104,21 +95,55 @@ $stepgate:step
 $stepgate:ship
 ```
 
-Codex uses the same `.stepgate/config.md` and plan files as Claude. Review and trust the compaction reminder in Codex's `/hooks` menu before it runs. To compact, use `$stepgate:compact` to save state, then run `/compact` in Codex CLI; in an IDE without that command, open a fresh chat with the supplied resume line.
+Codex uses the same base configuration, optional local differences, and plan files as Claude. Review and trust the compaction reminder in Codex's `/hooks` menu before it runs. To compact, use `$stepgate:compact` to save state, then run `/compact` in Codex CLI; in an IDE without that command, open a fresh chat with the supplied resume line.
 
 MCP servers and project-specific commands are configured in the host separately. Installing StepGate does not install tracker credentials or browser automation.
 
 ## Configuration
 
-Stepgate adapts to your project rather than imposing its own conventions. `/stepgate:init` works out your tracker, branches, review guideline, commit style, checks, PR rules, and how the project is run and verified locally - detecting what it can from the repo and asking you the rest - and saves them to **`.stepgate/config.md`** in your repo.
+`/stepgate:init` detects project conventions and asks only for missing choices. The base file, **`.stepgate/config.md`**, may stay entirely private or be committed to share with a team. Sharing is optional.
 
-You don't fill it out as a form: init interviews you and pre-fills what it detects. The working commands read this file, and run init automatically if a project doesn't have one yet.
+Put personal differences in optional **`.stepgate/config.local.md`**, which is always ignored and excluded from commits. Both hosts use the same files:
 
-The file is yours - plain markdown you can read and edit:
+| File | Purpose | Git |
+|---|---|---|
+| `.stepgate/config.md` | Base conventions | Private or shared, your choice |
+| `.stepgate/config.local.md` | Personal preferences and machine settings | Always local |
 
-- **Commit it** to share one setup with your whole team.
-- **Edit it by hand** anytime - no plugin changes needed.
-- **Plugin updates never touch it.**
+For example, keep common checks in the base:
+
+```markdown
+## Automated checks
+- Tests: npm test
+
+## Language
+- Local language: auto
+```
+
+Then set a personal language and evidence destination locally:
+
+```markdown
+## Language
+- Local language: Chinese (Simplified)
+
+## Verifying locally
+- Evidence: /path/to/local/screenshots
+```
+
+Local fields override matching base fields; omitted fields inherit. Free-form rules about different matters combine. Clear conflicts identify the winning local source. Precedence is defaults, base, local, then your explicit instruction. When offering to remember a rule, StepGate shows the proposed text and destination before writing.
+
+For a shared base with private plans, the relevant ignore rules are:
+
+```gitignore
+/.stepgate/config.local.md
+/.stepgate/plans/
+```
+
+Leave config.md trackable only if you choose to share it, adjusting an existing parent ignore rule if necessary. If everything under .stepgate/ stays private, an existing `/.stepgate/` rule still works. Choose whether to share the base and plans separately; if their sharing choices differ, ignore individual private paths instead of the whole directory. Ignoring a file that is already tracked does not untrack it.
+
+Existing single-file configurations keep working; no automatic split is required. To split one, move only the personal fields you choose into local configuration, preserving their section headings. Both files may be symlinks; relative working paths still resolve from the repository root. For a shared base, a symlink must be relative and resolve to a target shared within the repository; init explains other links and proposes a portable base only with your agreement. A plan directory may be absolute or relative, written as a plain `- Plans directory: <path>` line. Changing that value does not move old plans.
+
+The base file remains the initialization signal. With only local configuration present, init preserves those answers while creating the missing base. Both files are yours to edit, and plugin updates never rewrite them. See [the shared configuration rules](plugins/stepgate/references/configuration.md) for the full loading and update behavior.
 
 ## Updating
 
@@ -140,7 +165,7 @@ codex plugin add stepgate@stepgate
 
 With a local marketplace source, update that checkout first, then run only `codex plugin add stepgate@stepgate`. `marketplace upgrade` applies to Git sources. Both hosts consume `plugins/stepgate/commands/*.md` as the canonical workflow content. Maintainers run `python3 scripts/build-codex.py` after changing command metadata, and `python3 scripts/build-codex.py --check` plus `python3 -m unittest discover -s tests -v` before a release.
 
-See [CHANGELOG.md](CHANGELOG.md) for what changed between versions. Your `.stepgate/config.md` is untouched by updates.
+See [CHANGELOG.md](CHANGELOG.md) for what changed between versions. Your base and local configuration files are untouched by updates.
 
 ## License
 

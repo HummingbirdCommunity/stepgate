@@ -1,7 +1,7 @@
 {
 	"name": "stepgate",
-	"version": "0.5.0",
-	"description": "A supervised feature-authoring workflow with shared Claude and Codex instructions.",
+	"version": "0.6.0",
+	"description": "A feature-authoring workflow with shared Claude and Codex instructions and a human review before delivery.",
 	"skills": "./skills/",
 	"hooks": "./hooks/hooks.json",
 	"interface": {

@@ -5,13 +5,13 @@ argument-hint: "[optional: a section to reconfigure, e.g. branches | commits | t
 
 # /stepgate:init - configure stepgate for this project
 
-You are setting up stepgate for the current repository. Your job: produce `.stepgate/config.md` at the project root - the config the other stepgate commands read to follow this project's conventions. **Write it in the user's project, not the plugin directory.**
+You are setting up StepGate for the current repository. Produce `.stepgate/config.md` as the base and optional `.stepgate/config.local.md` for personal differences. **Write in the user's project, not the plugin directory.** Read and apply [Configuration loading and updates](../references/configuration.md), resolving the reference from this command file in the installed plugin.
 
-This is the one-time setup - it interviews the developer and writes the config the working commands depend on. `plan`/`step`/`ship` **run it automatically** whenever a project has no config yet, then continue; the developer can also run it directly to (re)configure. For a team, commit the config so everyone shares one setup.
+This is the one-time setup - it interviews the developer and writes the config the working commands depend on. `plan`/`step`/`ship` **run it automatically** whenever a project has no config yet, then continue; the developer can also run it directly to (re)configure. The base configuration may stay private or be shared with a team; local differences always stay private.
 
 **Language**: run the **entire interview in the user's language** - every question, every option label, and the summary must match the language they are talking to you in (they write in Chinese, you ask in Chinese). This command runs before the config exists, so judge their language from the conversation, not from config. Only the **config file's values** stay in English (they mirror real branch names, paths, and commands).
 
-**If `.stepgate/config.md` already exists**, read it first and switch to adjust mode: show what's set, change only the sections the user asks for (or the single section named in `$ARGUMENTS`), and preserve the rest. Otherwise, do a fresh setup:
+**If the base exists**, switch to adjust mode: show effective values and their sources, propose the requested changes in the appropriate layer, and preserve everything else. Follow the configuration reference's update rules, including symlink targets. Do not silently move existing values between files. **If only local configuration exists**, preserve and reuse its answers while setting up the missing base; do not repeat questions it already answers. Otherwise, do a fresh setup:
 
 ## Phase 1 - Detect, don't just ask
 
@@ -52,21 +52,23 @@ The sections to end up with (detected or asked):
 7. **Automated checks** - format, typecheck, lint, and test commands (exactly as run; tests can be one or more commands - whatever should pass before shipping), how to run the tests of just a few files (step runs those before each commit), plus any setup note (e.g. a required toolchain version).
 8. **Verifying locally** - how to stand this project up and actually look at a change: the run command and port; any port, server, or process that belongs to the developer and must never be touched; how a check gets past a login when pages are behind one; where screenshots and recordings are written and where they are delivered; what teardown is needed. **Ask only the cheap parts now** - how it runs, and which port or process is theirs. The rest is learned the hard way, so seed the section and move on rather than interrogating them about a setup they have not needed yet: `/stepgate:ship` offers additions each time it verifies something. **Write what you do not know as `unknown yet`, not as `n/a`** - `n/a` tells ship the field does not apply, so it will never try to learn it. Skip the section entirely for a project with nothing to serve.
 9. **Pull requests** - how ship ends: a pull request, a local merge into the target branch with no pull request, or the whole-branch gate only (the developer takes it from there); the PR target branch; a PR template/guide reference if the project has one (else `ship` writes a Summary + Test plan); the merge strategy (squash / merge commit / rebase); whether `ship` should manage a regenerated body section between markers.
-10. **Plan storage** - **ask where step plans should live** (suggest a sensible default like `.stepgate/plans` or `docs/plans`, but let the developer choose). Whether to commit them or keep them local is handled under Committing below (and if the chosen directory is already gitignored, that answers it - local). Also record any **other** paths that must never be staged - local scratch the developer keeps in the tree on purpose - so the working commands stop offering them.
+10. **Plan storage** - **ask where step plans should live** (suggest a sensible default like `.stepgate/plans` or `docs/plans`, but let the developer choose). Whether to commit them or keep them local is handled under Sharing below (and if the chosen directory is already gitignored, that answers it - local). Also record any **other** paths that must never be staged - local scratch the developer keeps in the tree on purpose - so the working commands stop offering them.
 
-**Committing (ask this during the interview, not at the end).** Two things can land in the repo: `.stepgate/config.md` and the plan files. **Ask the developer explicitly, for each, whether to commit it** (shared with everyone who clones the repo) **or keep it local** (gitignored). These are preferences you cannot detect - **do not assume or default either one**; ask. For anything kept local, add it to `.gitignore` when you write the config.
+**Sharing (ask during the interview).** For the base configuration and the plans separately, reuse an explicit existing choice or ask whether to commit or keep private; do not assume either choice. Local configuration always stays ignored. In the proposed setup, put team conventions in the base and personal preferences or machine settings in the local layer; show each value's destination and honor the developer's choices. Do not require sharing or split an existing single-file setup unless requested.
+
+**Before sharing a symlinked base**, inspect its target and what Git would track. Keep a relative link only if it resolves within this repository and its target will also be shared. For absolute, external, or private targets, explain that Git stores the link rather than the configuration text. Propose a normal base file containing the confirmed shared rules, leaving personal fields local and the original private file intact; replace the link only with the developer's agreement.
 
 The config also ends with a free-form `## Conventions` section. Seed it with any standing rules the developer already mentions; otherwise leave it empty - the working commands append to it over time.
 
 ## Phase 3 - Write the config
 
-Write `.stepgate/config.md` using exactly this structure (other commands rely on these section headings). Fill each value from the confirmed answers; use `none` / `n/a` where a section doesn't apply.
+Show the proposed files before writing. Use the base structure below, filling values from confirmed answers. For values kept only in the local layer, omit the corresponding base fields instead of duplicating personal settings. Local configuration needs only the relevant headings and fields. Use `none` / `n/a` for genuinely inapplicable fields. Create the optional local file only when needed; preserve existing content and symlinks.
 
 **Keep each field to its own plain value.** If a workflow *overrides* a field's normal meaning - e.g. "PRs target `dev`, except hotfixes, which go to `main`" - record the exception in `## Conventions`, don't stuff it into the field (Target branch stays just `dev`). Never write the same rule in both a field and Conventions.
 
 ```markdown
 # Stepgate configuration
-<!-- Generated by /stepgate:init. Edit freely and commit to share with your team. Stepgate commands read this file; plugin updates never overwrite it. -->
+<!-- Generated by /stepgate:init. Keep private or commit to share. Put personal differences in config.local.md. Plugin updates never overwrite either file. -->
 
 ## Language
 - Local language (our conversation, review findings shown to you, plans, working notes - anything that stays on your machine; file paths, identifiers, and commit-message stubs inside them stay English): <auto (match you) | a language>
@@ -134,4 +136,4 @@ Write `.stepgate/config.md` using exactly this structure (other commands rely on
 
 ## Phase 4 - Close out
 
-Confirm the file path, and **apply the commit-vs-local choices from the interview** - add `.stepgate/` and/or the plans directory to `.gitignore` for whatever the developer chose to keep local. Tell them they can edit the config by hand anytime. **If a stepgate command triggered this setup, hand control back to it and continue** where it left off - don't tell them to run something. Otherwise point them at the next step: **`/stepgate:plan`** to turn a requirement into a reviewable step plan.
+Confirm the written paths and **apply the sharing choices**: always ignore `/.stepgate/config.local.md`; ignore the base file and plans only when chosen private. Do not ignore the whole `.stepgate/` directory if it would hide a shared base or shared plans; adjust existing parent ignore rules narrowly and preserve unrelated rules. Report already-tracked private files instead of silently untracking them. Verify the resulting boundaries with `git check-ignore` and `git status`. Tell them either configuration file can be edited by hand. **If a stepgate command triggered this setup, hand control back to it and continue** where it left off - don't tell them to run something. Otherwise point them at the next step: **`/stepgate:plan`** to turn a requirement into a reviewable step plan.
