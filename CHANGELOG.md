@@ -2,6 +2,12 @@
 
 All notable changes to stepgate are documented here. This project follows [semantic versioning](https://semver.org/).
 
+## 0.7.0
+
+- Native Kimi Code installation with `/stepgate:plan`, `/stepgate:step`, `/stepgate:ship`, `/stepgate:init`, and `/stepgate:compact`, using the same canonical workflows as Claude and Codex.
+- Kimi host instructions survive native compaction and restore project configuration, plan state, explicit execution mode, and restrictions.
+- Every step plans and executes real acceptance checks before completion or commit; unit tests alone are insufficient. Missing prerequisites stay pending unless explicitly waived. Ship reruns missing or invalidated checks against the final diff.
+
 ## 0.6.0
 
 - Optional local configuration: combine .stepgate/config.md with .stepgate/config.local.md using the same rules in Claude and Codex. Base configuration may remain private or be shared; local differences stay ignored.

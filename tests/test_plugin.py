@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -13,12 +14,30 @@ spec.loader.exec_module(builder)
 
 
 class PluginTests(unittest.TestCase):
-    def test_both_hosts_ship_the_same_release(self):
+    def test_all_hosts_ship_the_same_release(self):
         claude = json.loads((PLUGIN / '.claude-plugin/plugin.json').read_text())
         codex = json.loads((PLUGIN / '.codex-plugin/plugin.json').read_text())
+        kimi = json.loads((ROOT / '.kimi-plugin/plugin.json').read_text())
         marketplace = json.loads((ROOT / '.claude-plugin/marketplace.json').read_text())
         self.assertEqual(claude['version'], codex['version'])
+        self.assertEqual(claude['version'], kimi['version'])
         self.assertEqual(claude['version'], marketplace['plugins'][0]['version'])
+
+    def test_kimi_paths_resolve_in_a_clean_install(self):
+        with tempfile.TemporaryDirectory() as directory:
+            installed = (Path(directory) / 'installed plugin').resolve()
+            shutil.copytree(ROOT / '.kimi-plugin', installed / '.kimi-plugin')
+            shutil.copytree(PLUGIN, installed / 'plugins/stepgate')
+            manifest = json.loads((installed / '.kimi-plugin/plugin.json').read_text())
+            commands = (installed / manifest['commands']).resolve()
+            conventions = (installed / manifest['systemPromptPath']).resolve()
+            self.assertTrue(commands.is_relative_to(installed))
+            self.assertTrue(conventions.is_relative_to(installed))
+            self.assertEqual(commands, installed / 'plugins/stepgate/commands')
+            self.assertTrue(conventions.is_file())
+            self.assertEqual({path.stem for path in commands.glob('*.md')},
+                             {path.stem for path in (PLUGIN / 'commands').glob('*.md')})
+            self.assertTrue((commands / '../references/configuration.md').resolve().is_file())
 
     def test_codex_entrypoints_resolve_to_live_workflow_sources(self):
         generated = list(builder.generated_skills())

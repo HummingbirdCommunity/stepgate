@@ -1,6 +1,6 @@
 # Stepgate
 
-**A feature-authoring workflow for Claude Code and Codex, with a human review before delivery.**
+**A feature-authoring workflow for Claude Code, Codex, and Kimi Code, with a human review before delivery.**
 
 Plan together, build in small steps, and choose how review happens. In auto, the agent implements, self-reviews, checks, and commits each step; you review the whole branch at ship. In supervised mode, you also approve each file and commit.
 
@@ -24,6 +24,8 @@ On a follow-up, stepgate checks the ticket against the current code, plans only 
 /stepgate:step auto   # implement and check the remaining steps
 /stepgate:step        # review one implemented step with you
 ```
+
+Every step plans and executes a real acceptance check: call the running API, operate the UI, or exercise the actual consumer. Unit tests alone do not complete a step. Missing prerequisites stay pending unless you explicitly waive that check; auto uses the same gate.
 
 Auto starts only when you explicitly choose it; approving a plan does not select a mode. You can choose supervision or switch modes anytime. File count alone is not a reason to discourage auto. If new material risks emerge, the agent stops and explains them. Your explicit choice is recorded in the plan and restored after compaction; current restrictions still apply.
 
@@ -97,13 +99,34 @@ $stepgate:ship
 
 Codex uses the same base configuration, optional local differences, and plan files as Claude. Review and trust the compaction reminder in Codex's `/hooks` menu before it runs. To compact, use `$stepgate:compact` to save state, then run `/compact` in Codex CLI; in an IDE without that command, open a fresh chat with the supplied resume line.
 
+### Kimi Code
+
+Use the current Kimi Code CLI (`@moonshot-ai/kimi-code`), not the archived Python `kimi-cli`. After the Kimi support release is published, run inside Kimi Code:
+
+```text
+/plugins install https://github.com/HummingbirdCommunity/stepgate/tree/main
+/reload
+```
+
+Use `/stepgate:plan`, `/stepgate:step`, `/stepgate:ship`, `/stepgate:init`, and `/stepgate:compact`. Installation is user-wide. Kimi reads the same workflows, configuration, and plans. After `/stepgate:compact` saves state, run native `/compact`; the plugin's host instructions restore the active workflow after compaction.
+
+For local development, export committed plugin files from the repository root:
+
+```bash
+stepgate_install_dir="$(mktemp -d)"
+git archive HEAD .kimi-plugin plugins/stepgate | tar -x -C "$stepgate_install_dir"
+printf '/plugins install %s\n' "$stepgate_install_dir"
+```
+
+Run the printed command inside Kimi, then `/reload`. Re-export and reinstall after local commits. If you have hand-copied `stepgate-*` skills, move them outside scanned skill directories after installation so they cannot keep running older workflows.
+
 MCP servers and project-specific commands are configured in the host separately. Installing StepGate does not install tracker credentials or browser automation.
 
 ## Configuration
 
 `/stepgate:init` detects project conventions and asks only for missing choices. The base file, **`.stepgate/config.md`**, may stay entirely private or be committed to share with a team. Sharing is optional.
 
-Put personal differences in optional **`.stepgate/config.local.md`**, which is always ignored and excluded from commits. Both hosts use the same files:
+Put personal differences in optional **`.stepgate/config.local.md`**, which is always ignored and excluded from commits. All hosts use the same files:
 
 | File | Purpose | Git |
 |---|---|---|
@@ -163,7 +186,11 @@ codex plugin marketplace upgrade stepgate
 codex plugin add stepgate@stepgate
 ```
 
-With a local marketplace source, update that checkout first, then run only `codex plugin add stepgate@stepgate`. `marketplace upgrade` applies to Git sources. Both hosts consume `plugins/stepgate/commands/*.md` as the canonical workflow content. Maintainers run `python3 scripts/build-codex.py` after changing command metadata, and `python3 scripts/build-codex.py --check` plus `python3 -m unittest discover -s tests -v` before a release.
+With a local marketplace source, update that checkout first, then run only `codex plugin add stepgate@stepgate`. `marketplace upgrade` applies to Git sources.
+
+In Kimi Code, rerun `/plugins install https://github.com/HummingbirdCommunity/stepgate/tree/main`, then `/reload`. Local installations are managed copies: re-export current committed files using the local-development recipe above and reinstall the printed path.
+
+All hosts consume `plugins/stepgate/commands/*.md` as the canonical workflow content. Maintainers run `python3 scripts/build-codex.py` after changing command metadata, and `python3 scripts/build-codex.py --check` plus `python3 -m unittest discover -s tests -v` before a release.
 
 See [CHANGELOG.md](CHANGELOG.md) for what changed between versions. Your base and local configuration files are untouched by updates.
 

@@ -50,10 +50,10 @@ Work through the developer's answers - and any product-owner answers that came b
 
 ## Phase 5 - Write the step-by-step plan
 
-Once locked, write the plan as **small, ordered, individually-reviewable steps**. Each step is a coherent unit (~one commit / 1-2 files) that lines up with one `/stepgate:step` pass. For **each step** give:
+Once locked, write **small, ordered, individually-reviewable steps**: one runnable, verifiable unit per `/stepgate:step` and commit (usually 1-2 files). Reorder or combine dependencies to verify each step before committing it. For **each step** give:
 - **What & why** - one line on the change and its reason.
 - **Files** - the specific files created/edited.
-- **How to verify** - the quick check that this step works (test, manual action, query).
+- **How to verify** - prerequisites, action, expected result, and evidence. Exercise the running API/UI or actual consumer, including material failure cases. Integration/E2E checks count; unit tests, mocks, or reading alone do not. For docs/config/prompts, exercise their consuming workflow.
 - **Commit** - a suggested commit message stub following your commit conventions (style, scope, ticket reference).
 - **Mockup** - for a UI step, the part of the signed-off mockup it builds.
 
