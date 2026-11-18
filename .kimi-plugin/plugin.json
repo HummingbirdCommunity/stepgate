@@ -1,6 +1,6 @@
 {
 	"name": "stepgate",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"description": "Plan features, verify each step, and review before delivery.",
 	"commands": "./plugins/stepgate/commands/",
 	"systemPromptPath": "./plugins/stepgate/references/kimi.md",

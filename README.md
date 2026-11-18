@@ -1,6 +1,6 @@
 # Stepgate
 
-**A feature-authoring workflow for Claude Code, Codex, and Kimi Code, with a human review before delivery.**
+**A feature-authoring workflow for Claude Code, Codex, Kimi Code, and Antigravity CLI, with a human review before delivery.**
 
 Plan together, build in small steps, and choose how review happens. In auto, the agent implements, self-reviews, checks, and commits each step; you review the whole branch at ship. In supervised mode, you also approve each file and commit.
 
@@ -120,6 +120,26 @@ printf '/plugins install %s\n' "$stepgate_install_dir"
 
 Run the printed command inside Kimi, then `/reload`. Re-export and reinstall after local commits. If you have hand-copied `stepgate-*` skills, move them outside scanned skill directories after installation so they cannot keep running older workflows.
 
+### Antigravity CLI
+
+Install once from a terminal, including your IDE's integrated terminal. The workflow was verified with `agy` 1.5.11.
+
+```bash
+agy plugin install https://github.com/HummingbirdCommunity/stepgate
+```
+
+Start `agy` in your project and enter a command in chat, for example `/stepgate:plan add a readiness endpoint`. Use `/stepgate:step` for per-file review, `/stepgate:step auto` to explicitly choose auto, and `/stepgate:ship` for the final review and verification. `/stepgate:init` sets up a new project's configuration. Existing StepGate configuration and plans also work in AGY.
+
+To compact, run `/stepgate:compact` to save the plan state. Run AGY's `/compact`, then paste the separate StepGate recovery command it supplied.
+
+For local development, export committed plugin files from the StepGate checkout and install the export.
+
+```bash
+stepgate_install_dir="$(mktemp -d)"
+git archive HEAD .antigravity-plugin skills plugins/stepgate | tar -x -C "$stepgate_install_dir"
+agy plugin install "$stepgate_install_dir"
+```
+
 MCP servers and project-specific commands are configured in the host separately. Installing StepGate does not install tracker credentials or browser automation.
 
 ## Configuration
@@ -190,7 +210,9 @@ With a local marketplace source, update that checkout first, then run only `code
 
 In Kimi Code, rerun `/plugins install https://github.com/HummingbirdCommunity/stepgate/tree/main`, then `/reload`. Local installations are managed copies: re-export current committed files using the local-development recipe above and reinstall the printed path.
 
-All hosts consume `plugins/stepgate/commands/*.md` as the canonical workflow content. Maintainers run `python3 scripts/build-codex.py` after changing command metadata, and `python3 scripts/build-codex.py --check` plus `python3 -m unittest discover -s tests -v` before a release.
+For Antigravity CLI, rerun `agy plugin install https://github.com/HummingbirdCommunity/stepgate` and start a fresh `agy` session. For a local install, re-export the current commit and reinstall the new directory. Use `agy plugin list` to check the installed version and enabled status.
+
+All hosts consume `plugins/stepgate/commands/*.md` as the canonical workflow content. Maintainers run `python3 scripts/build-codex.py` to regenerate the Codex and AGY skills after changing command metadata. Before a release, run `python3 scripts/build-codex.py --check`, `python3 -m unittest discover -s tests -v`, and `agy plugin validate --strict <exported-plugin-directory>`.
 
 See [CHANGELOG.md](CHANGELOG.md) for what changed between versions. Your base and local configuration files are untouched by updates.
 

@@ -1,0 +1,13 @@
+{
+	"$schema": "https://antigravity.google/schemas/v1/plugin.json",
+	"name": "stepgate",
+	"displayName": "Stepgate",
+	"version": "0.8.0",
+	"description": "Plan features, verify each step, and review before delivery.",
+	"author": {
+		"name": "Xenia Lu",
+		"url": "https://github.com/XeniaLu"
+	},
+	"repository": "https://github.com/HummingbirdCommunity/stepgate",
+	"license": "MIT"
+}

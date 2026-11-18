@@ -1,11 +1,9 @@
 # Stepgate - project guide
 
-Stepgate is a Claude Code, Codex, and Kimi Code plugin: a feature-authoring
-loop (`plan -> step -> ship`, plus `init` for one-time project setup that the working
-commands auto-run when there's no config, and `compact` to carry state across a context
-compaction). The plugin lives in `plugins/stepgate/`
-(`.claude-plugin/plugin.json`, `commands/`), listed by the marketplace at the repo root
-(`.claude-plugin/marketplace.json`); the command prompt files run
+Stepgate provides the `plan -> step -> ship` workflow for Claude Code, Codex,
+Kimi Code, and Antigravity CLI. `init` sets up a project when the working
+commands find no config. `compact` carries state across context compaction.
+The canonical workflows live in `plugins/stepgate/commands/` and run
 in *other people's* repos. **Stepgate is the umbrella for the whole methodology** - future
 tracks (reviewing others' PRs, promoting between environments) are added as more
 `/stepgate:*` commands in this one plugin, not as separate plugins.
@@ -34,8 +32,10 @@ tracks (reviewing others' PRs, promoting between environments) are added as more
 The canonical content is `plugins/stepgate/commands/*.md`. All hosts read those files; never copy their workflow bodies into a second maintained instruction set.
 
 - Claude packaging is in `plugins/stepgate/.claude-plugin/` and the root `.claude-plugin/marketplace.json`.
-- Codex packaging is in `plugins/stepgate/.codex-plugin/`, `skills/`, and the root `.agents/plugins/marketplace.json`. Its thin skills read the canonical command and `plugins/stepgate/references/codex.md` for host-specific conventions.
+- Codex packaging is in `plugins/stepgate/.codex-plugin/`, `plugins/stepgate/skills/`, and the root `.agents/plugins/marketplace.json`. Its thin skills read the canonical command and `plugins/stepgate/references/codex.md` for host-specific conventions.
 - Kimi packaging is the root `.kimi-plugin/plugin.json`, pointing to canonical commands and `plugins/stepgate/references/kimi.md`. Export committed plugin files for clean local installs; do not package `.git` or `.stepgate`.
-- Run `python3 scripts/build-codex.py` when command metadata changes.
+- Antigravity CLI packaging is the root `.antigravity-plugin/plugin.json` and root `skills/`. Each skill reads the canonical command and `plugins/stepgate/references/agy.md`. Use the README's Git archive recipe for local installs.
+- Run `python3 scripts/build-codex.py` to regenerate Codex and AGY skills when command metadata changes.
 - Before a release, run `python3 scripts/build-codex.py --check` and `python3 -m unittest discover -s tests -v`.
-- Keep all three host manifests and the Claude marketplace version in sync, and add one changelog entry describing the release. Existing project configs stay intact.
+- Check the AGY export with `agy plugin validate --strict <exported-plugin-directory>`.
+- Keep all four host manifests and the Claude marketplace version in sync, and add one changelog entry describing the release. Existing project configs stay intact.

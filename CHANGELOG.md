@@ -2,6 +2,11 @@
 
 All notable changes to stepgate are documented here. This project follows [semantic versioning](https://semver.org/).
 
+## 0.8.0
+
+- Native Antigravity CLI (`agy`) support. Install from GitHub or a local export and use the five StepGate commands with existing project configuration and plans.
+- Compaction uses each host's command syntax. In AGY, a separate StepGate recovery command reloads the saved plan, execution mode, and restrictions after `/compact`.
+
 ## 0.7.0
 
 - Native Kimi Code installation with `/stepgate:plan`, `/stepgate:step`, `/stepgate:ship`, `/stepgate:init`, and `/stepgate:compact`, using the same canonical workflows as Claude and Codex.

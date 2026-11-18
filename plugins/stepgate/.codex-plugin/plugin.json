@@ -1,6 +1,6 @@
 {
 	"name": "stepgate",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"description": "A feature-authoring workflow with shared instructions and a human review before delivery.",
 	"skills": "./skills/",
 	"hooks": "./hooks/hooks.json",

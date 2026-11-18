@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -18,9 +19,11 @@ class PluginTests(unittest.TestCase):
         claude = json.loads((PLUGIN / '.claude-plugin/plugin.json').read_text())
         codex = json.loads((PLUGIN / '.codex-plugin/plugin.json').read_text())
         kimi = json.loads((ROOT / '.kimi-plugin/plugin.json').read_text())
+        agy = json.loads((ROOT / '.antigravity-plugin/plugin.json').read_text())
         marketplace = json.loads((ROOT / '.claude-plugin/marketplace.json').read_text())
         self.assertEqual(claude['version'], codex['version'])
         self.assertEqual(claude['version'], kimi['version'])
+        self.assertEqual(claude['version'], agy['version'])
         self.assertEqual(claude['version'], marketplace['plugins'][0]['version'])
 
     def test_kimi_paths_resolve_in_a_clean_install(self):
@@ -49,6 +52,36 @@ class PluginTests(unittest.TestCase):
             self.assertTrue(source.resolve().is_file())
             self.assertTrue((path.parent / '../../references/codex.md').resolve().is_file())
             self.assertNotIn('## Phase 1', text)
+
+    def test_agy_entrypoints_resolve_in_a_clean_install(self):
+        with tempfile.TemporaryDirectory() as directory:
+            installed = (Path(directory) / 'installed plugin').resolve()
+            for path in ('.antigravity-plugin', 'skills', 'plugins/stepgate'):
+                shutil.copytree(ROOT / path, installed / path)
+
+            manifest = json.loads((installed / '.antigravity-plugin/plugin.json').read_text())
+            self.assertEqual(manifest['name'], 'stepgate')
+            self.assertNotIn('skills', manifest)
+            shared = installed / 'plugins/stepgate'
+            commands = {file.stem for file in (shared / 'commands').glob('*.md')}
+            skills = {file.parent.name: file for file in installed.glob('skills/*/SKILL.md')}
+            self.assertEqual(skills.keys(), commands)
+            self.assertTrue((shared / 'references/configuration.md').is_file())
+
+            for source, expected in builder.generated_skills('agy'):
+                name = source.parent.name
+                with self.subTest(skill=name):
+                    skill = skills[name]
+                    text = skill.read_text()
+                    self.assertEqual(text, expected)
+                    self.assertIn(f'\nname: {name}\n', text)
+                    self.assertIn('\ndisable-model-invocation: true\n', text)
+                    links = re.findall(r'\[[^\]]+\]\(([^)]+)\)', text)
+                    targets = {(skill.parent / link).resolve() for link in links}
+                    self.assertEqual(targets, {shared / 'references/agy.md',
+                                               shared / 'commands' / f'{name}.md'})
+                    for target in targets:
+                        self.assertTrue(target.is_file())
 
     def test_compaction_reminder_resolves_project_config_and_branch_plan(self):
         with tempfile.TemporaryDirectory() as directory:

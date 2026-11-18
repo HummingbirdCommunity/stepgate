@@ -54,9 +54,9 @@ Then report back a **terse bullet list of what you recorded** - the headings, no
 
 1. Confirm what was saved and **where**.
 2. **The in-flight work.** If it is a complete step, **default to leaving it for after the compaction**: the file-by-file review and the pre-flight checks are exactly what will not fit, and they work just as well afterwards, because the diff lives in the working tree rather than in the conversation. Recommend committing it first - `/stepgate:step`, since a commit is better memory than a note - **only when the developer says there is room**, or when they came here with no warning having fired. If it is half a step, leave it, and make sure Phase 3 described it well enough to resume mid-file. (On Claude Code you can invoke `/stepgate:step`; elsewhere run the same flow inline.)
-3. Tell the developer to **run their tool's context-compaction command now** - on Claude Code that is `/compact`, which takes a focus instruction. Hand them one, copy-pasteable and specific to this session:
+3. Tell the developer to **run compaction using the current host's conventions**. Give a copy-pasteable bare command when the host uses one, or the host's recovery procedure if it has no compaction command. On Claude Code, adapt this focus instruction to the session.
    `/compact keep the current step's approach and the remaining plan steps; full state is in <plan path>`
-4. Give the **resume line for after the compaction** - name one, from actual state:
+4. Give the **resume line for after the compaction**. Use the host's recovery command when it provides one. Otherwise, choose the line below that matches the current state.
    - A step is built and waiting to be reviewed: **`/stepgate:step`**.
    - All steps are done and committed: **`/stepgate:ship`** (**`/stepgate:ship stage`** when more stages of the ticket are to come).
    - A step is half-implemented: a copy-pasteable prose line, e.g. `Read <plan path>, then continue step <n> (<title>) from the "Resume here" block.`
